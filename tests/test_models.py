@@ -2,11 +2,12 @@ import unittest
 
 from app.models import User
 from app import db, create_app
+from config import TestConfig
 
 
 class TestUser(unittest.TestCase):
     def setUp(self):
-        self.app = create_app()
+        self.app = create_app(TestConfig)
         self.app_context = self.app.app_context()
         self.app_context.push()
         db.create_all()
@@ -24,7 +25,7 @@ class TestUser(unittest.TestCase):
     def test_user_repr(self):
         expected_repr = f'<User {self.u1.username}>'
         self.assertEqual(repr(self.u1), expected_repr)
-        self.assertEqual(str(u), expected_repr)
+        self.assertEqual(str(self.u1), expected_repr)
 
     def test_password(self):
         u = User()
