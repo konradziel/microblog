@@ -3,6 +3,9 @@ import socket
 import threading
 import time
 from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.firefox.options import Options as FirefoxOptions
 from config import Config
 from app import create_app, db
@@ -92,3 +95,51 @@ def browser():
     driver.implicitly_wait(2)
     yield driver
     driver.quit()
+
+
+def register_user(browser, live_server, username, email, password):
+    """Helper function to register a new user"""
+    browser.get(f"{live_server}/auth/register")
+
+    WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.NAME, "username"))
+    )
+    browser.find_element(By.NAME, "username").clear()
+    browser.find_element(By.NAME, "username").send_keys(username)
+    browser.find_element(By.NAME, "email").clear()
+    browser.find_element(By.NAME, "email").send_keys(email)
+    browser.find_element(By.NAME, "password").clear()
+    browser.find_element(By.NAME, "password").send_keys(password)
+    browser.find_element(By.NAME, "password2").clear()
+    browser.find_element(By.NAME, "password2").send_keys(password)
+
+    browser.find_element(By.CSS_SELECTOR, "input[type=submit],button[type=submit]").click()
+    WebDriverWait(browser, 10).until(
+        EC.url_contains("/auth/login")
+    )
+
+
+def login_user(browser, live_server, username, password):
+    """Helper function to log in a user"""
+    browser.get(f"{live_server}/auth/login")
+
+    WebDriverWait(browser, 10).until(
+        EC.presence_of_element_located((By.NAME, "username"))
+    )
+    browser.find_element(By.NAME, "username").clear()
+    browser.find_element(By.NAME, "username").send_keys(username)
+    browser.find_element(By.NAME, "password").clear()
+    browser.find_element(By.NAME, "password").send_keys(password)
+
+    browser.find_element(By.CSS_SELECTOR, "input[type=submit],button[type=submit]").click()
+    WebDriverWait(browser, 10).until(
+        lambda d: "/auth/login" not in d.current_url
+    )
+
+
+def logout_user(browser):
+    """Helper function to log out current user"""
+    browser.find_element(By.LINK_TEXT, "Logout").click()
+    WebDriverWait(browser, 10).until(
+        EC.url_contains("/auth/login")
+    )
