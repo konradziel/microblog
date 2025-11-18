@@ -104,7 +104,7 @@ class TestAPI(unittest.TestCase):
         data = json.loads(response.data)
         self.assertIn('error', data)
         self.assertEqual(data['error'], 'Unauthorized')
-        
+
     def tearDown(self):
         db.session.remove()
         db.drop_all()
