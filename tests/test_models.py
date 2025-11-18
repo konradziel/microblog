@@ -1,6 +1,6 @@
 import unittest
 
-from app.models import User
+from app.models import User, Post
 from app import db, create_app
 from config import TestConfig
 
@@ -17,6 +17,8 @@ class TestUser(unittest.TestCase):
 
         db.session.add(self.u1)
         db.session.add(self.u2)
+
+        db.session.commit()
 
     def test_init(self):
         u = User()
@@ -70,6 +72,28 @@ class TestUser(unittest.TestCase):
         self.assertTrue(self.u1.is_following(self.u2))
 
         self.assertEqual(self.u1.following_count(), 1)
+
+    def test_following_posts(self):
+        self.u1.follow(self.u2)
+        db.session.commit()
+
+        self.assertTrue(self.u1.is_following(self.u2))
+        post1 = Post(body='post from bob', author=self.u2)
+        db.session.add(post1)
+        db.session.commit()
+
+        posts = db.session.scalars(self.u1.following_posts()).all()
+        self.assertEqual(len(posts), 1)
+
+    def test_get_reset_password_token(self):
+        token = self.u1.get_reset_password_token()
+        self.assertIsNotNone(token)
+
+    def test_verify_reset_password_token(self):
+        token = self.u1.get_reset_password_token()
+        user = User.verify_reset_password_token(token)
+        self.assertEqual(user, self.u1)
+
 
     def tearDown(self):
         db.session.remove()
