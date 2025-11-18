@@ -189,7 +189,39 @@ class TestUser(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
 
 
+    def test_update_user_success(self):
+        user_data = {
+            'username': 'charlie',
+            'email': 'alice@example.com',
+            'password': 'password123'
+        }
 
+        response = self.client.put(
+            f'/api/users/{self.u1.id}',
+            data=json.dumps(user_data),
+            headers=self.get_headers(self.token1)
+        )
+
+        self.assertEqual(response.status_code, 200)
+        data = json.loads(response.data)
+        print(data)
+        self.assertEqual(data['username'], 'charlie')
+
+
+    def test_update_user_unauthorized(self):
+        user_data = {
+            'username': 'charlie',
+            'email': 'charlie@example.com',
+            'password': 'password123'
+        }
+
+        response = self.client.put(
+            f'/api/users/{self.u1.id}',
+            data=json.dumps(user_data),
+            headers=self.get_headers()
+        )
+
+        self.assertEqual(response.status_code, 401)
 
     def tearDown(self):
         db.session.remove()
