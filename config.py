@@ -30,4 +30,5 @@ class TestConfig(Config):
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     WTF_CSRF_ENABLED = False
     ELASTICSEARCH_URL = None
-    REDIS_URL = 'redis://'
+    REDIS_URL = 'redis://'    
+    SERVER_NAME = 'localhost:5000'

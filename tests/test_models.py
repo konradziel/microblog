@@ -1,6 +1,6 @@
 import unittest
 
-from app.models import User, Post
+from app.models import User, Post, Message, Notification, Task
 from app import db, create_app
 from config import TestConfig
 
@@ -94,6 +94,40 @@ class TestUser(unittest.TestCase):
         user = User.verify_reset_password_token(token)
         self.assertEqual(user, self.u1)
 
+    def test_unread_messages_count(self):
+        self.assertEqual(self.u1.unread_message_count(), 0)
+        
+        msg = Message(body='test message', author=self.u2, recipient=self.u1)
+        db.session.add(msg)
+        db.session.commit()
+
+        self.assertEqual(self.u1.unread_message_count(), 1)
+
+    def test_add_notification(self):
+        self.u1.add_notification('test', 'test notification')
+        db.session.commit()
+
+        notifications = db.session.query(Notification).filter_by(user_id=self.u1.id).all()
+        self.assertEqual(len(notifications), 1)
+        self.assertEqual(notifications[0].name, 'test')
+        self.assertEqual(notifications[0].payload_json, '"test notification"')
+
+    def test_posts_count(self):
+        self.assertEqual(self.u1.posts_count(), 0)
+        post = Post(body='test post', author=self.u1)
+        db.session.add(post)
+        db.session.commit()
+        self.assertEqual(self.u1.posts_count(), 1)
+
+    def test_to_dict(self):
+        dictionary = self.u1.to_dict(include_email=True)
+        self.assertEqual(dictionary['username'], 'alice')
+        self.assertEqual(dictionary['email'], 'alice@example.com')
+        self.assertIsNotNone(dictionary['last_seen'])
+        self.assertIsNone(dictionary['about_me'])
+        self.assertEqual(dictionary['post_count'], 0)
+        self.assertEqual(dictionary['follower_count'], 0)
+        self.assertEqual(dictionary['following_count'], 0)
 
     def tearDown(self):
         db.session.remove()
