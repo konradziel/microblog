@@ -105,6 +105,33 @@ class TestAPI(unittest.TestCase):
         self.assertIn('error', data)
         self.assertEqual(data['error'], 'Unauthorized')
 
+    def test_update_user_unauthorized(self):
+        response = self.client.put(
+            f'/api/users/9999',
+            headers=self.get_headers(self.token1)
+        )
+        self.assertEqual(response.status_code, 403)
+
+    def test_update_user_invalid_username(self):
+        response = self.client.put(
+            f'/api/users/{self.u1.id}',
+            headers=self.get_headers(self.token1)
+        )
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Invalid username')
+
+    def test_update_user_invalid_email(self):
+        response = self.client.put(
+            f'/api/users/{self.u1.id}',
+            headers=self.get_headers(self.token1)
+        )
+        self.assertEqual(response.status_code, 400)
+        data = json.loads(response.data)
+        self.assertIn('error', data)
+        self.assertEqual(data['error'], 'Invalid email')
+        
     def tearDown(self):
         db.session.remove()
         db.drop_all()
