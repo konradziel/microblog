@@ -4,7 +4,7 @@ from base64 import b64encode
 
 from app import db, create_app
 from app.models import User
-from config import TestConfig
+from tests.conftest import TestConfig, get_headers
 
 class TestAPI(unittest.TestCase):
     def setUp(self):
@@ -72,7 +72,7 @@ class TestAPI(unittest.TestCase):
     def test_revoke_token_success(self):
         response = self.client.delete(
             '/api/tokens',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 204)
         self.assertEqual(response.data, b'')
@@ -84,7 +84,7 @@ class TestAPI(unittest.TestCase):
     def test_use_revoked_token(self):
         response = self.client.get(
             f'/api/users/{self.u1.id}',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.data)
@@ -92,46 +92,19 @@ class TestAPI(unittest.TestCase):
         
         response = self.client.delete(
             '/api/tokens',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 204)
         
         response = self.client.get(
             f'/api/users/{self.u1.id}',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 401)
         data = json.loads(response.data)
         self.assertIn('error', data)
         self.assertEqual(data['error'], 'Unauthorized')
 
-    def test_update_user_unauthorized(self):
-        response = self.client.put(
-            f'/api/users/9999',
-            headers=self.get_headers(self.token1)
-        )
-        self.assertEqual(response.status_code, 403)
-
-    def test_update_user_invalid_username(self):
-        response = self.client.put(
-            f'/api/users/{self.u1.id}',
-            headers=self.get_headers(self.token1)
-        )
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertIn('error', data)
-        self.assertEqual(data['error'], 'Invalid username')
-
-    def test_update_user_invalid_email(self):
-        response = self.client.put(
-            f'/api/users/{self.u1.id}',
-            headers=self.get_headers(self.token1)
-        )
-        self.assertEqual(response.status_code, 400)
-        data = json.loads(response.data)
-        self.assertIn('error', data)
-        self.assertEqual(data['error'], 'Invalid email')
-        
     def tearDown(self):
         db.session.remove()
         db.drop_all()

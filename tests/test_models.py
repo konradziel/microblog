@@ -1,8 +1,9 @@
+from datetime import datetime, timezone
 import unittest
 
 from app.models import User, Post, Message, Notification, Task
 from app import db, create_app
-from config import TestConfig
+from tests.conftest import TestConfig
 
 
 class TestUser(unittest.TestCase):
@@ -120,14 +121,53 @@ class TestUser(unittest.TestCase):
         self.assertEqual(self.u1.posts_count(), 1)
 
     def test_to_dict(self):
-        dictionary = self.u1.to_dict(include_email=True)
-        self.assertEqual(dictionary['username'], 'alice')
-        self.assertEqual(dictionary['email'], 'alice@example.com')
-        self.assertIsNotNone(dictionary['last_seen'])
-        self.assertIsNone(dictionary['about_me'])
-        self.assertEqual(dictionary['post_count'], 0)
-        self.assertEqual(dictionary['follower_count'], 0)
-        self.assertEqual(dictionary['following_count'], 0)
+        with self.app.test_request_context():
+            dictionary = self.u1.to_dict(include_email=True)
+            self.assertEqual(dictionary['username'], 'alice')
+            self.assertEqual(dictionary['email'], 'alice@example.com')
+            self.assertIsNotNone(dictionary['last_seen'])
+            self.assertIsNone(dictionary['about_me'])
+            self.assertEqual(dictionary['post_count'], 0)
+            self.assertEqual(dictionary['follower_count'], 0)
+            self.assertEqual(dictionary['following_count'], 0)
+
+    def test_from_dict(self):
+        with self.app.test_request_context():
+            data = self.u1.to_dict(include_email=True)
+            self.u1.from_dict(data)
+            db.session.commit()
+
+            self.assertEqual(data['username'], 'alice')
+            self.assertEqual(data['email'], 'alice@example.com')
+            self.assertIsNotNone(data['last_seen'])
+            self.assertIsNone(data['about_me'])
+            self.assertEqual(data['post_count'], 0)
+            self.assertEqual(data['follower_count'], 0)
+            self.assertEqual(data['following_count'], 0)
+
+    def test_get_token(self):
+        token = self.u1.get_token()
+        self.assertIsNotNone(token)
+        self.assertTrue(len(token) == 32)
+        self.assertTrue(isinstance(token, str))
+
+    def test_revoke_token(self):
+        token = self.u1.get_token()
+        self.u1.revoke_token()
+        db.session.commit()
+        self.assertIsNotNone(self.u1.token_expiration)
+        self.assertTrue(
+            self.u1.token_expiration.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc)
+        )
+
+    def test_check_token(self):
+        token = self.u1.get_token()
+        user = User.check_token(token)
+        self.assertEqual(user, self.u1)
+        self.u1.revoke_token()
+        db.session.commit()
+        user = User.check_token(token)
+        self.assertIsNone(user)
 
     def tearDown(self):
         db.session.remove()

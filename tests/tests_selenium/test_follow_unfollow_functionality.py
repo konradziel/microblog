@@ -4,7 +4,8 @@ import time
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
-from tests.tests_selenium.conftest import register_user, login_user
+from tests.conftest import register_user, login_user, user_create
+
 
 def test_follow_unfollow_functionality(live_server, browser):
     wait = WebDriverWait(browser, timeout=2)
@@ -15,6 +16,7 @@ def test_follow_unfollow_functionality(live_server, browser):
     user2_username = "follow_user2"
     user2_email = "follow_user2@example.com"
     user2_password = "Secret123!"
+
 
     register_user(browser, live_server, user1_username, user1_email, user1_password)
     register_user(browser, live_server, user2_username, user2_email, user2_password)

@@ -3,7 +3,7 @@ import unittest
 
 from app import db, create_app
 from app.models import User
-from config import TestConfig
+from tests.conftest import TestConfig, get_headers
 
 
 class TestUser(unittest.TestCase):
@@ -30,18 +30,11 @@ class TestUser(unittest.TestCase):
         self.token1 = self.u1.get_token()
         db.session.commit()
 
-    @staticmethod
-    def get_headers(token=None):
-        """Method to get authentication headers."""
-        headers = {'Content-Type': 'application/json'}
-        if token:
-            headers['Authorization'] = f'Bearer {token}'
-        return headers
 
     def test_get_user_success(self):
         response = self.client.get(
             f'/api/users/{self.u1.id}',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 200)
@@ -57,7 +50,7 @@ class TestUser(unittest.TestCase):
     def test_get_user_not_found(self):
         response = self.client.get(
             f'/api/users/9999',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 404)
@@ -65,7 +58,7 @@ class TestUser(unittest.TestCase):
     def test_get_users(self):
         response = self.client.get(
             f'/api/users',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 200)
@@ -84,7 +77,7 @@ class TestUser(unittest.TestCase):
 
         response = self.client.get(
             f'/api/users/{self.u1.id}/followers',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 200)
@@ -105,7 +98,7 @@ class TestUser(unittest.TestCase):
 
         response = self.client.get(
             f'/api/users/{self.u1.id}/following',
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 200)
@@ -130,7 +123,7 @@ class TestUser(unittest.TestCase):
         response = self.client.post(
             '/api/users',
             data=json.dumps(user_data),
-            headers=self.get_headers()
+            headers=get_headers()
         )
 
         self.assertEqual(response.status_code, 201)
@@ -153,7 +146,7 @@ class TestUser(unittest.TestCase):
         response = self.client.post(
             '/api/users',
             data=json.dumps(user_data),
-            headers=self.get_headers()
+            headers=get_headers()
         )
 
         self.assertEqual(response.status_code, 400)
@@ -168,7 +161,7 @@ class TestUser(unittest.TestCase):
         response = self.client.post(
             '/api/users',
             data=json.dumps(user_data),
-            headers=self.get_headers()
+            headers=get_headers()
         )
 
         self.assertEqual(response.status_code, 400)
@@ -183,7 +176,7 @@ class TestUser(unittest.TestCase):
         response = self.client.post(
             '/api/users',
             data=json.dumps(user_data),
-            headers=self.get_headers()
+            headers=get_headers()
         )
 
         self.assertEqual(response.status_code, 400)
@@ -198,7 +191,7 @@ class TestUser(unittest.TestCase):
         response = self.client.put(
             f'/api/users/{self.u1.id}',
             data=json.dumps(user_data),
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
 
         self.assertEqual(response.status_code, 200)
@@ -216,7 +209,7 @@ class TestUser(unittest.TestCase):
         response = self.client.put(
             f'/api/users/{self.u1.id}',
             data=json.dumps(user_data),
-            headers=self.get_headers()
+            headers=get_headers()
         )
 
         self.assertEqual(response.status_code, 401)
@@ -231,7 +224,7 @@ class TestUser(unittest.TestCase):
         response = self.client.put(
             f'/api/users/9999',
             data=json.dumps(user_data),
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 403)
 
@@ -244,7 +237,7 @@ class TestUser(unittest.TestCase):
         response = self.client.put(
             f'/api/users/{self.u1.id}',
             data=json.dumps(user_data),
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)
@@ -260,7 +253,7 @@ class TestUser(unittest.TestCase):
         response = self.client.put(
             f'/api/users/{self.u1.id}',
             data=json.dumps(user_data),
-            headers=self.get_headers(self.token1)
+            headers=get_headers(self.token1)
         )
         self.assertEqual(response.status_code, 400)
         data = json.loads(response.data)

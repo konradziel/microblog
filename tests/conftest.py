@@ -83,12 +83,11 @@ def live_server(app):
     server.shutdown()
     thread.join(timeout=2)
 
-
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def browser():
     """Headless Firefox (geckodriver przez selenium-manager)."""
     opts = FirefoxOptions()
-    # opts.add_argument("-headless")
+    opts.add_argument("-headless")
     driver = webdriver.Firefox(options=opts)
     # krótkie timeouts, by nie wisieć
     driver.set_page_load_timeout(10)
@@ -143,3 +142,10 @@ def logout_user(browser):
     WebDriverWait(browser, 10).until(
         EC.url_contains("/auth/login")
     )
+
+def get_headers(token=None):
+    """Method to get authentication headers."""
+    headers = {'Content-Type': 'application/json'}
+    if token:
+        headers['Authorization'] = f'Bearer {token}'
+    return headers

@@ -2,7 +2,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-from tests.tests_selenium.conftest import register_user, login_user, logout_user
+from tests.conftest import register_user, login_user, logout_user
 
 def test_private_message_flow(live_server, browser):
     # Test data
