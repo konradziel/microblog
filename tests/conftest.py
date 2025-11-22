@@ -15,8 +15,6 @@ from app.models import User
 class TestConfig(Config):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
-    WTF_CSRF_ENABLED = False
-    ELASTICSEARCH_URL = None
 
 
 @pytest.fixture(scope="session")
@@ -24,8 +22,7 @@ def app():
     app = create_app(TestConfig)
     with app.app_context():
         db.create_all()
-    yield app
-    with app.app_context():
+        yield app
         db.session.remove()
         db.drop_all()
 
@@ -88,6 +85,8 @@ def browser():
     """Headless Firefox (geckodriver przez selenium-manager)."""
     opts = FirefoxOptions()
     opts.add_argument("-headless")
+    opts.add_argument("--disable-gpu")
+    opts.add_argument("--no-sandbox")
     driver = webdriver.Firefox(options=opts)
     # krótkie timeouts, by nie wisieć
     driver.set_page_load_timeout(10)
